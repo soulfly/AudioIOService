@@ -8,14 +8,27 @@ Features:
 * Access low level audio IO data
 
 ```objc
-[[QBAudioIOService shared] setOutputBlock:^(AudioBuffer buffer) {
+TPCircularBuffer circularBuffer;
 
+TPCircularBufferInit(&circularBuffer, 32768); 
+ 
+[[QBAudioIOService shared] setOutputBlock:^(AudioBuffer buffer) {
+    int32_t availableBytesInBuffer;
+    void *cbuffer = TPCircularBufferTail(&circularBuffer, &availableBytesInBuffer);
+                    
+    // Read audio data if exist
+    if(availableBytesInBuffer > 0){
+      int min = MIN(buffer.mDataByteSize, availableBytesInBuffer);
+      memcpy(buffer.mData, cbuffer, min);
+      TPCircularBufferConsume(&circularBuffer, min);
+    } 
 }];
 
 ...
 
 [[QBAudioIOService shared] setInputBlock:^(AudioBuffer buffer){
-
+    // Put audio into circular buffer
+    TPCircularBufferProduceBytes(&circularBuffer, buffer.mData, buffer.mDataByteSize);
 }];
 ```
 
@@ -25,6 +38,7 @@ Features:
 ...
 
 [[QBAudioIOService shared] stop];
+TPCircularBufferCleanup(&circularBuffer);
 ```
 
 * Route output to speaker/headphone
