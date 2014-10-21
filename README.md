@@ -36,3 +36,13 @@ Features:
 
 [[QBAudioIOService shared] routeToSpeaker];
 ```
+
+* Compress/decompress raw data using iLBC codec
+```objc
+
+// Convert to iLBC
+AudioBuffer encodedBuffer = [[QBAudioIOService shared] encodePCMtoiLBC:originBuffer];
+
+// Convert back to PCM
+AudioBuffer decodedData = [[QBAudioIOService shared] decodeiLBCtoPCM:buffer];
+```
